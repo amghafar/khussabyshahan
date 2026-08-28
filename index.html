@@ -464,6 +464,11 @@ section{padding:72px 0;}
   font-size:0.9rem;
   color:var(--charcoal);
 }
+.field input:invalid:not(:placeholder-shown),
+.field textarea:invalid:not(:placeholder-shown),
+.field select:invalid{
+  border-color:var(--rose);
+}
 .field input:focus,
 .field textarea:focus,
 .field select:focus{
@@ -1166,16 +1171,16 @@ footer a:hover{color:var(--blush);}
 <script>
 /* ============ DATA ============ */
 const PRODUCTS = [
-  {id:1,name:"Rose Zardozi Khussa",cat:"Women",tag:"New",price:3200,oldPrice:null,color:"#A31621",sizes:[36,37,38,39,40]},
-  {id:2,name:"Charcoal Mojari",cat:"Men",tag:"New",price:2800,oldPrice:null,color:"#221B18",sizes:[40,41,42,43,44]},
-  {id:3,name:"Gold Tilla Bridal Khussa",cat:"Bridal",tag:"New",price:5500,oldPrice:null,color:"#B0793E",sizes:[36,37,38,39]},
+  {id:1,name:"Rose Zardozi Khussa",cat:"Women",tag:"New",price:3200,oldPrice:null,color:"#A31621",sizes:[6,7,8,9,10,11,12]},
+  {id:2,name:"Charcoal Mojari",cat:"Men",tag:"New",price:2800,oldPrice:null,color:"#221B18",sizes:[6,7,8,9,10,11,12,13,14]},
+  {id:3,name:"Gold Tilla Bridal Khussa",cat:"Bridal",tag:"New",price:5500,oldPrice:null,color:"#B0793E",sizes:[6,7,8,9,10,11,12]},
   {id:4,name:"Little Star Kids Khussa",cat:"Kids",tag:"New",price:1600,oldPrice:null,color:"#EFD8CE",sizes:[28,29,30,31]},
-  {id:5,name:"Maroon Thread-work Khussa",cat:"Women",tag:"Sale",price:2450,oldPrice:3100,color:"#7A1220",sizes:[36,37,38,39,40]},
-  {id:6,name:"Classic Black Peshawari",cat:"Men",tag:"Sale",price:2100,oldPrice:2700,color:"#1B1614",sizes:[40,41,42,43,44,45]},
+  {id:5,name:"Maroon Thread-work Khussa",cat:"Women",tag:"Sale",price:2450,oldPrice:3100,color:"#7A1220",sizes:[6,7,8,9,10,11,12]},
+  {id:6,name:"Classic Black Peshawari",cat:"Men",tag:"Sale",price:2100,oldPrice:2700,color:"#1B1614",sizes:[6,7,8,9,10,11,12,13,14]},
   {id:7,name:"Blush Pearl Bridal Set",cat:"Bridal",tag:"Sale",price:4600,oldPrice:6000,color:"#D9A9A0",sizes:[37,38,39,40]},
   {id:8,name:"Sunshine Kids Juti",cat:"Kids",tag:null,price:1450,oldPrice:null,color:"#C98A2A",sizes:[27,28,29,30]},
-  {id:9,name:"Ivory Mirror Work Khussa",cat:"Women",tag:"New",price:3400,oldPrice:null,color:"#D7C2A7",sizes:[36,37,38,39,40]},
-  {id:10,name:"Brown Leather Mojari",cat:"Men",tag:null,price:2950,oldPrice:null,color:"#6D4530",sizes:[40,41,42,43,44]},
+  {id:9,name:"Ivory Mirror Work Khussa",cat:"Women",tag:"New",price:3400,oldPrice:null,color:"#D7C2A7",sizes:[6,7,8,9,10,11,12]},
+  {id:10,name:"Brown Leather Mojari",cat:"Men",tag:null,price:2950,oldPrice:null,color:"#6D4530",sizes:[6,7,8,9,10,11,12,13,14]},
   {id:11,name:"Ruby Bridal Jutti",cat:"Bridal",tag:"New",price:5900,oldPrice:null,color:"#9E1728",sizes:[36,37,38,39,40]},
   {id:12,name:"Pink Flower Kids Juti",cat:"Kids",tag:null,price:1550,oldPrice:null,color:"#D98E9C",sizes:[27,28,29,30,31]}
 ];
@@ -1192,6 +1197,7 @@ let activeCategory = 'All';
 let currentModalProduct = null;
 let selectedSize = null;
 let selectedPayment = 'jazzcash';
+let soldProducts = JSON.parse(localStorage.getItem('kbs_sold_products') || '[]');
 
 /* ============ SVG SHOE ICON ============ */
 function shoeSVG(color){
@@ -1243,6 +1249,7 @@ function filterAndGo(cat){
 
 /* ============ PRODUCT CARD ============ */
 function productCard(p){
+  if(soldProducts.includes(p.id)) return '';
   return `
     <div class="p-card" onclick="openProduct(${p.id})">
       <div class="p-thumb" style="background:linear-gradient(160deg,#F1E6D4,#EFD8CE);">
@@ -1266,7 +1273,7 @@ function productCard(p){
 function renderHome(){
   renderCategories();
   document.getElementById('bestsellerGrid').innerHTML=
-    PRODUCTS.slice(0,4).map(productCard).join('');
+    PRODUCTS.filter(p=>!soldProducts.includes(p.id)).slice(0,4).map(productCard).join('');
 }
 
 function renderNewArrivals(){
@@ -1277,8 +1284,8 @@ function renderNewArrivals(){
   ).join('');
 
   const list=activeCategory==='All'
-    ? PRODUCTS
-    : PRODUCTS.filter(p=>p.cat===activeCategory);
+    ? PRODUCTS.filter(p=>!soldProducts.includes(p.id))
+    : PRODUCTS.filter(p=>p.cat===activeCategory && !soldProducts.includes(p.id));
 
   document.getElementById('newGrid').innerHTML=
     list.map(productCard).join('');
@@ -1293,7 +1300,7 @@ function setNewFilter(cat){
 }
 
 function renderSales(){
-  const list=PRODUCTS.filter(p=>p.oldPrice);
+  const list=PRODUCTS.filter(p=>p.oldPrice && !soldProducts.includes(p.id));
   document.getElementById('salesGrid').innerHTML=
     list.map(productCard).join('');
 }
@@ -1341,7 +1348,7 @@ function renderModal(){
       </p>
 
       <label style="font-size:0.78rem;font-weight:700;color:var(--charcoal-soft);">
-        Select size (EU)
+        Select Size (PK)
       </label>
 
       <div class="size-grid" id="sizeGrid">
@@ -1352,9 +1359,14 @@ function renderModal(){
         `).join('')}
       </div>
 
-      <button class="btn btn-primary btn-block" onclick="addToCart(${p.id})">
-        Add to Cart
-      </button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-outline btn-block" onclick="addToCart(${p.id})">
+          Add to Cart
+        </button>
+        <button class="btn btn-primary btn-block" onclick="buyNow(${p.id})">
+          Buy It Now
+        </button>
+      </div>
     </div>
   `;
 }
@@ -1362,6 +1374,24 @@ function renderModal(){
 function pickSize(s){
   selectedSize=s;
   renderModal();
+}
+
+function buyNow(id){
+  const p=PRODUCTS.find(x=>x.id===id);
+  if(!p || soldProducts.includes(id)) return;
+
+  cart=[{
+    id:p.id,
+    name:p.name,
+    price:p.price,
+    color:p.color,
+    size:selectedSize,
+    qty:1
+  }];
+
+  saveCart();
+  closeModal();
+  goToCheckout();
 }
 
 function closeModal(){
@@ -1520,7 +1550,7 @@ function renderCheckout(){
   const total=subtotal+codFee;
 
   document.getElementById('checkoutContent').innerHTML=`
-    <div class="checkout-grid">
+    <form class="checkout-grid" id="checkoutForm" onsubmit="placeOrder(event)" novalidate>
 
       <div>
         <h3 style="font-size:1.05rem;margin-bottom:16px;">
@@ -1528,18 +1558,49 @@ function renderCheckout(){
         </h3>
 
         <div class="field">
-          <label>Full name</label>
-          <input type="text" required>
+          <label>Full name *</label>
+          <input id="customerName" type="text" required minlength="3"
+                 pattern="[A-Za-zÀ-ÿ ]{3,}"
+                 title="Please enter your full name using letters and spaces only."
+                 placeholder="Enter your full name">
         </div>
 
         <div class="field">
-          <label>Phone number</label>
-          <input type="tel" required>
+          <label>Phone number *</label>
+          <input id="customerPhone" type="tel" required
+                 pattern="(?:\+92|0)3[0-9]{9}"
+                 title="Enter a valid Pakistani mobile number, e.g. 03001234567 or +923001234567"
+                 placeholder="03001234567">
         </div>
 
-        <div class="field">
-          <label>Delivery address</label>
-          <textarea required></textarea>
+        <label style="display:block;font-size:0.78rem;font-weight:700;margin-bottom:6px;color:var(--charcoal-soft);">
+          Delivery address *
+        </label>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="field">
+            <input id="address" type="text" required minlength="5"
+                   placeholder="Street / House / Area">
+          </div>
+
+          <div class="field">
+            <input id="city" type="text" required minlength="2"
+                   pattern="[A-Za-zÀ-ÿ .'-]{2,}"
+                   placeholder="City">
+          </div>
+
+          <div class="field">
+            <input id="state" type="text" required minlength="2"
+                   pattern="[A-Za-zÀ-ÿ .'-]{2,}"
+                   placeholder="State / Province">
+          </div>
+
+          <div class="field">
+            <input id="country" type="text" required minlength="2"
+                   pattern="[A-Za-zÀ-ÿ .'-]{2,}"
+                   value="Pakistan"
+                   placeholder="Country">
+          </div>
         </div>
 
         <h3 style="font-size:1.05rem;margin:28px 0 16px;">
@@ -1555,20 +1616,15 @@ function renderCheckout(){
           <div class="pay-detail">
             Send Rs. ${total.toLocaleString()} to
             <b>0300-1234567 (Khussa by Shahan)</b>,
-            then upload your transaction receipt below.
+            then upload your payment receipt below.
 
             <div class="qr-box">
               JazzCash<br>QR code
             </div>
 
             <div class="field">
-              <label>Transaction ID</label>
-              <input type="text" placeholder="e.g. TXN123456">
-            </div>
-
-            <div class="field">
-              <label>Upload receipt screenshot</label>
-              <input type="file" accept="image/*">
+              <label>Upload payment receipt *</label>
+              <input id="jazzcashReceipt" type="file" accept="image/*" required>
             </div>
           </div>
         </div>
@@ -1582,20 +1638,15 @@ function renderCheckout(){
           <div class="pay-detail">
             Send Rs. ${total.toLocaleString()} to
             <b>0300-7654321 (Khussa by Shahan)</b>,
-            then upload your transaction receipt below.
+            then upload your payment receipt below.
 
             <div class="qr-box">
               Easypaisa<br>QR code
             </div>
 
             <div class="field">
-              <label>Transaction ID</label>
-              <input type="text" placeholder="e.g. TXN654321">
-            </div>
-
-            <div class="field">
-              <label>Upload receipt screenshot</label>
-              <input type="file" accept="image/*">
+              <label>Upload payment receipt *</label>
+              <input id="easypaisaReceipt" type="file" accept="image/*" required>
             </div>
           </div>
         </div>
@@ -1643,15 +1694,52 @@ function renderCheckout(){
           <span>Rs. ${total.toLocaleString()}</span>
         </div>
 
-        <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="placeOrder()">
+        <button class="btn btn-primary btn-block" style="margin-top:18px;" type="submit">
           Place Order
         </button>
       </div>
-    </div>
+    </form>
   `;
 }
+function placeOrder(e){
+  e.preventDefault();
 
-function placeOrder(){
+  const form=document.getElementById('checkoutForm');
+  if(!form.checkValidity()){
+    form.reportValidity();
+    showToast('Please complete all required fields correctly.');
+    return;
+  }
+
+  if(cart.length===0){
+    showToast('Your cart is empty');
+    return;
+  }
+
+  if(selectedPayment!=='cod'){
+    const receiptId=selectedPayment==='jazzcash'
+      ? 'jazzcashReceipt'
+      : 'easypaisaReceipt';
+
+    const receipt=document.getElementById(receiptId);
+
+    if(!receipt || !receipt.files || receipt.files.length===0){
+      showToast('Please upload your payment receipt.');
+      receipt?.focus();
+      return;
+    }
+
+    if(!receipt.files[0].type.startsWith('image/')){
+      showToast('Please upload a valid receipt image.');
+      receipt.focus();
+      return;
+    }
+  }
+
+  const orderedIds=[...new Set(cart.map(l=>l.id))];
+  soldProducts=[...new Set([...soldProducts,...orderedIds])];
+  localStorage.setItem('kbs_sold_products',JSON.stringify(soldProducts));
+
   const orderId='KBS'+Math.floor(10000+Math.random()*89999);
 
   document.getElementById('checkoutContent').innerHTML=`
@@ -1676,7 +1764,7 @@ function placeOrder(){
         Thank you for shopping handmade.
       </p>
 
-      <button class="btn btn-outline" style="margin-top:26px;" onclick="cart=[];saveCart();goTo('home');">
+      <button class="btn btn-outline" style="margin-top:26px;" onclick="cart=[];saveCart();renderHome();renderNewArrivals();renderSales();goTo('home');">
         Continue Shopping
       </button>
     </div>
@@ -1684,8 +1772,10 @@ function placeOrder(){
 
   cart=[];
   saveCart();
+  renderHome();
+  renderNewArrivals();
+  renderSales();
 }
-
 /* ============ MISC ============ */
 function showToast(msg){
   const t=document.getElementById('toast');
